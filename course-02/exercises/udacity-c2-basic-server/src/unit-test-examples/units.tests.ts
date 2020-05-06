@@ -15,6 +15,11 @@ describe('add function', () => {
     expect(result).to.equal(0);
   });
 
+  it('shoudl add two and five', () => {
+    const result = add(2, 5)
+    expect(result).to.equal(7);
+  });
+
 });
 
 describe('divide', () => {
