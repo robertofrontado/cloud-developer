@@ -43,13 +43,16 @@ import { resolveSoa } from 'dns';
       return res.status(400).send({ message: 'image_url is not a valid url, we only support the following formats: jpeg, jpg & png'});
     }
 
-    const filteredImagePath = await filterImageFromURL(image_url);
-
-    // Send file
-    res.sendFile(filteredImagePath, (error: Error) => {
-      // Delete temporal file
-      deleteLocalFiles([filteredImagePath]);
-    });
+    try {
+      const filteredImagePath = await filterImageFromURL(image_url);
+      // Send file
+      res.sendFile(filteredImagePath, (error: Error) => {
+        // Delete temporal file
+        deleteLocalFiles([filteredImagePath]);
+      });
+    } catch(error) {
+      res.status(422).send({ error: error.message });
+    }
   });
 
   // Root Endpoint
