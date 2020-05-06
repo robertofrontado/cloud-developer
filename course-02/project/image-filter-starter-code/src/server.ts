@@ -1,6 +1,7 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import bodyParser from 'body-parser';
-import {filterImageFromURL, deleteLocalFiles} from './util/util';
+import {filterImageFromURL, deleteLocalFiles, validateImageUrl} from './util/util';
+import { resolveSoa } from 'dns';
 
 (async () => {
 
@@ -12,7 +13,7 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
   
   // Use the body parser middleware for post requests
   app.use(bodyParser.json());
-
+  
   // @TODO1 IMPLEMENT A RESTFUL ENDPOINT
   // GET /filteredimage?image_url={{URL}}
   // endpoint to filter an image from a public url.
@@ -31,6 +32,26 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
 
   //! END @TODO1
   
+  app.get('/filteredimage', async (req: Request, res: Response) => {
+    const { image_url } = req.query;
+    
+    if(!image_url) {
+      return res.status(400).send({ message: 'image_url is required'});
+    }
+
+    if(!validateImageUrl(image_url)) {
+      return res.status(400).send({ message: 'image_url is not a valid url, we only support the following formats: jpeg, jpg & png'});
+    }
+
+    const filteredImagePath = await filterImageFromURL(image_url);
+
+    // Send file
+    res.sendFile(filteredImagePath, (error: Error) => {
+      // Delete temporal file
+      deleteLocalFiles([filteredImagePath]);
+    });
+  });
+
   // Root Endpoint
   // Displays a simple message to the user
   app.get( "/", async ( req, res ) => {
